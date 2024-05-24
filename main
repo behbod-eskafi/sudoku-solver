@@ -1,0 +1,79 @@
+"""
+Written by:
+Behbod Eskafi --> Github: behbod-eskafi
+"""
+
+# Finds empty cells and return their indecies
+def find_empty_location(board):
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] == 0:
+                return i, j
+    return None
+
+# Forward Checking ==> possible values for the current cell
+def get_possible_values(board, row, col):
+    # {1,2,3,...}
+    used_values = set(board[row]) or set(board[i][col] for i in range(9)) or set(
+        board[i + row//3*3][j + col//3*3] for i in range(3) for j in range(3)
+    )
+    return [num for num in range(1, 10) if num not in used_values]
+
+# finds the empty cell with the fewest possible values as domain
+def mrv_heuristic(board):
+    # board[0][2] --> D:7
+    # board[0][3] --> D:9
+    empty_locations = [(i, j) for i in range(9) for j in range(9) if board[i][j] == 0]
+    # lambda returns the number of possible values for each location
+    # *loc unpacks the location into seprate arguments: (i,j) --> i , j
+    return min(empty_locations, key=lambda loc: len(get_possible_values(board, *loc)), default=None)
+
+def solve_sudoku(board):
+    empty_location = mrv_heuristic(board)
+    # empty_location = find_empty_location(board)
+
+    # Board is solved
+    if not empty_location:
+        return True
+
+    row, col = empty_location
+
+    for num in get_possible_values(board, row, col):
+        board[row][col] = num
+
+        # Continue solving
+        if solve_sudoku(board):
+            return True
+
+        # If the current assignment doesn't lead to a solution, backtrack
+        board[row][col] = 0
+
+    # There is no possible answer
+    return False
+
+def print_board(board):
+    
+    print("\n-------------------------")
+
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] is not None:
+                if j == 0:
+                    print("|", end=" ")
+                print(f"{board[i][j]} ", end="")
+            if (j + 1) % 3 == 0:
+                print("|", end=" ")
+        if (i + 1) % 3 == 0:
+            print("\n-------------------------", end=" ")
+        print()
+
+# if solve_sudoku(sudoku_board):
+#     for row in sudoku_board:
+#         for i in row:
+#             print('| '+ str(i), end=' ')
+#         #print(row)
+#         print('|')
+#         # print('--------------------------------------')
+
+# else:
+#     print("No solution exists.")
